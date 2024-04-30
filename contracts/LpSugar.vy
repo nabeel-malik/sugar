@@ -234,12 +234,14 @@ registry: public(IFactoryRegistry)
 voter: public(IVoter)
 nfpm: public(INFPositionManager)
 cl_helper: public(ISlipstreamHelper)
-oldFactory: public(address)
+old_factory: public(address)
+old_nfpm: public(INFPositionManager)
+
 
 # Methods
 
 @external
-def __init__(_voter: address, _registry: address, _nfpm: address, _slipstream_helper: address, _old_factory: address):
+def __init__(_voter: address, _registry: address, _nfpm: address, _slipstream_helper: address, _old_factory: address, _old_nfpm: address):
   """
   @dev Sets up our external contract addresses
   """
@@ -247,7 +249,8 @@ def __init__(_voter: address, _registry: address, _nfpm: address, _slipstream_he
   self.registry = IFactoryRegistry(_registry)
   self.nfpm = INFPositionManager(_nfpm)
   self.cl_helper = ISlipstreamHelper(_slipstream_helper)
-  self.oldFactory = _old_factory
+  self.old_factory = _old_factory
+  self.old_nfpm = INFPositionManager(_old_nfpm)
 
 @internal
 @view
@@ -260,7 +263,7 @@ def _pools(_limit: uint256, _offset: uint256)\
   @return Array of four addresses (factory, pool, gauge, type value: 0/2/3)
   """
   factories: DynArray[address, MAX_FACTORIES] = self.registry.poolFactories()
-  factories.append(self.oldFactory)
+  factories.append(self.old_factory)
   factories_count: uint256 = len(factories)
 
   placeholder: address[4] = empty(address[4])
@@ -313,7 +316,7 @@ def forSwaps(_limit: uint256, _offset: uint256) -> DynArray[SwapLp, MAX_POOLS]:
   @return `SwapLp` structs
   """
   factories: DynArray[address, MAX_FACTORIES] = self.registry.poolFactories()
-  factories.append(self.oldFactory)
+  factories.append(self.old_factory)
   factories_count: uint256 = len(factories)
 
   pools: DynArray[SwapLp, MAX_POOLS] = empty(DynArray[SwapLp, MAX_POOLS])
@@ -593,7 +596,7 @@ def positions(_limit: uint256, _offset: uint256, _account: address)\
   pools_done: uint256 = 0
 
   factories: DynArray[address, MAX_FACTORIES] = self.registry.poolFactories()
-  factories.append(self.oldFactory)
+  factories.append(self.old_factory)
   factories_count: uint256 = len(factories)
 
   for index in range(0, MAX_FACTORIES):
@@ -624,8 +627,12 @@ def positions(_limit: uint256, _offset: uint256, _account: address)\
           positions.append(pos)
 
     if self._is_cl_factory(factory.address):
+      nfpm: INFPositionManager = self.nfpm
+      if(factory.address == self.old_factory):
+        nfpm = self.old_nfpm
+
       # fetch unstaked CL positions
-      positions_count: uint256 = self.nfpm.balanceOf(_account)
+      positions_count: uint256 = nfpm.balanceOf(_account)
 
       for pindex in range(0, MAX_POSITIONS):
         if pindex >= positions_count or pools_done >= _limit:
@@ -638,13 +645,14 @@ def positions(_limit: uint256, _offset: uint256, _account: address)\
         else:
           pools_done += 1
 
-        pos_id: uint256 = self.nfpm.tokenOfOwnerByIndex(_account, pindex)
+        pos_id: uint256 = nfpm.tokenOfOwnerByIndex(_account, pindex)
         pos: Position = self._cl_position(
           pos_id,
           _account,
           empty(address),
           empty(address),
-          factory.address
+          factory.address,
+          nfpm.address
         )
 
         if pos.lp != empty(address):
@@ -681,7 +689,8 @@ def positions(_limit: uint256, _offset: uint256, _account: address)\
             _account,
             pool_addr,
             gauge.address,
-            factory.address
+            factory.address,
+            nfpm.address
           )
 
           positions.append(pos)
@@ -691,7 +700,7 @@ def positions(_limit: uint256, _offset: uint256, _account: address)\
 @internal
 @view
 def _cl_position(_id: uint256, _account: address,\
-    _pool:address, _gauge:address, _factory: address) -> Position:
+    _pool:address, _gauge:address, _factory: address, _nfpm: address) -> Position:
   """
   @notice Returns concentrated pool position data
   @param _id The token ID of the position
@@ -704,8 +713,9 @@ def _cl_position(_id: uint256, _account: address,\
   pos: Position = empty(Position)
   pos.id = _id
   pos.lp = _pool
+  nfpm: INFPositionManager = INFPositionManager(_nfpm)
 
-  data: PositionData = self.nfpm.positions(pos.id)
+  data: PositionData = nfpm.positions(pos.id)
 
   # Try to find the pool if we're fetching an unstaked position
   if pos.lp == empty(address):
@@ -729,7 +739,7 @@ def _cl_position(_id: uint256, _account: address,\
     gauge = ICLGauge(self.voter.gauges(pos.lp))
 
   amounts: Amounts = self.cl_helper.principal(
-    self.nfpm.address, pos.id, slot.sqrtPriceX96
+    nfpm.address, pos.id, slot.sqrtPriceX96
   )
   pos.amount0 = amounts.amount0
   pos.amount1 = amounts.amount1
@@ -741,7 +751,7 @@ def _cl_position(_id: uint256, _account: address,\
   pos.sqrt_ratio_lower = self.cl_helper.getSqrtRatioAtTick(pos.tick_lower)
   pos.sqrt_ratio_upper = self.cl_helper.getSqrtRatioAtTick(pos.tick_upper)
 
-  amounts_fees: Amounts = self.cl_helper.fees(self.nfpm.address, pos.id)
+  amounts_fees: Amounts = self.cl_helper.fees(nfpm.address, pos.id)
   pos.unstaked_earned0 = amounts_fees.amount0
   pos.unstaked_earned1 = amounts_fees.amount1
 

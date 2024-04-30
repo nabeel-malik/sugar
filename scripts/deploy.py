@@ -18,7 +18,8 @@ def main():
             os.getenv('REGISTRY_ADDRESS'),
             os.getenv('NFPM_ADDRESS'),
             os.getenv('SLIPSTREAM_HELPER_ADDRESS'),
-            os.getenv('OLD_POOL_FACTORY'),
+            os.getenv('OLD_POOL_FACTORY_ADDRESS'),
+            os.getenv('OLD_NFPM_ADDRESS'),
             {'from': account}
         )
 
