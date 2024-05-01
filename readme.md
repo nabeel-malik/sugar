@@ -35,7 +35,7 @@ Below is the list of datasets we support.
 
 ### Liquidity Pools Data
 
-`LpSugar.vy` is deployed at `0xC301856B4262E49E9239ec8a2d0c754d5ae317c0`
+`LpSugar.vy` is deployed at `0xa7638D351040e2ADCe3EcA81b07132c5Df4B99Bd`
 
 It allows fetching on-chain pools data.
 The returned data/struct of type `Lp` values represent:
@@ -188,7 +188,7 @@ The available methods are:
 
 ### Relay Data
 
-`RelaySugar.vy` is deployed at `0x56870657bEaE842156057B138dd3a85bF0dfe2C1`
+`RelaySugar.vy` is deployed at `0x8932B5FE23C07Df06533F8f09E43e7cca6a24143`
 
 It allows fetching Relay autocompounder/autoconverter data.
 The returned data/struct of type `Relay` values represent:
