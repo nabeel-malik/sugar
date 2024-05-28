@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BUSL-1.1
-# @version >=0.3.6 <0.4.0
+# @version ^0.3.6
 
 # @title Aerodrome Finance veNFT Sugar v2
 # @author stas
@@ -154,6 +154,7 @@ def _byId(_id: uint256) -> VeNFT:
   perma: bool = False
   amount, expires_at, perma = self.ve.locked(_id)
   last_voted: uint256 = 0
+
   governance_amount: uint256 = self.gov.getVotes(_id, block.timestamp)
 
   delegate_id: uint256 = self.ve.delegates(_id)

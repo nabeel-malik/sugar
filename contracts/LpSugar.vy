@@ -232,19 +232,22 @@ interface ISlipstreamHelper:
 # Vars
 registry: public(IFactoryRegistry)
 voter: public(IVoter)
+convertor: public(address)
 nfpm: public(INFPositionManager)
 cl_helper: public(ISlipstreamHelper)
 
 # Methods
 
 @external
-def __init__(_voter: address, _registry: address, _nfpm: address, _slipstream_helper: address):
+def __init__(_voter: address, _registry: address, _convertor: address, \
+    _nfpm: address, _slipstream_helper: address):
   """
   @dev Sets up our external contract addresses
   """
   self.voter = IVoter(_voter)
   self.registry = IFactoryRegistry(_registry)
   self.nfpm = INFPositionManager(_nfpm)
+  self.convertor = _convertor
   self.cl_helper = ISlipstreamHelper(_slipstream_helper)
 
 @internal
@@ -287,6 +290,10 @@ def _pools(_limit: uint256, _offset: uint256)\
       if pindex >= pools_count or len(pools) >= _limit + _offset:
         break
 
+      # Since the convertor pool, first pool on one of the factories...
+      if pindex == 0 and factory.allPools(0) == self.convertor:
+        continue
+
       # Basically skip calls for offset records...
       if to_skip > 0:
         to_skip -= 1
@@ -322,6 +329,10 @@ def forSwaps(_limit: uint256, _offset: uint256) -> DynArray[SwapLp, MAX_POOLS]:
 
     factory: IPoolFactory = IPoolFactory(factories[index])
     is_cl_factory: bool = self._is_cl_factory(factory.address)
+    is_v2_factory: bool = self._is_v2_factory(factory.address)
+
+    if is_v2_factory == False and is_cl_factory == False:
+      continue
 
     pools_count: uint256 = factory.allPoolsLength()
 
@@ -358,7 +369,7 @@ def forSwaps(_limit: uint256, _offset: uint256) -> DynArray[SwapLp, MAX_POOLS]:
         reserve0 = pool.reserve0()
         pool_fee = factory.getFee(pool_addr, (type == 0))
 
-      if reserve0 > 0:
+      if reserve0 > 0 or pool_addr == self.convertor:
         pools.append(SwapLp({
           lp: pool_addr,
           type: type,
@@ -612,6 +623,9 @@ def positions(_limit: uint256, _offset: uint256, _account: address)\
           pools_done += 1
 
         pool_addr: address = factory.allPools(pindex)
+
+        if pool_addr == self.convertor:
+          continue
 
         pos: Position = self._v2_position(_account, pool_addr)
 
