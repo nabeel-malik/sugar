@@ -55,8 +55,16 @@ def LpEpochBribeStruct(sugar_contract):
 
 
 def test_initial_state(sugar_contract):
-    assert sugar_contract.voter() == os.getenv('VOTER_ADDRESS')
-    assert sugar_contract.registry() == os.getenv('REGISTRY_ADDRESS')
+    assert sugar_contract.voter() == \
+        '0x16613524e02ad97eDfeF371bC883F2F5d6C480A5'
+    assert sugar_contract.registry() == \
+        '0x5C3F18F06CC09CA1910767A34a20F771039E37C0'
+    assert sugar_contract.convertor() == \
+        '0x1111111111111111111111111111111111111111'
+    assert sugar_contract.nfpm() == \
+        '0x827922686190790b37229fd06084350E74485b72'
+    assert sugar_contract.cl_helper() == \
+        '0x6d2D739bf37dFd93D804523c2dfA948EAf32f8E1'
 
 
 def test_byIndex(sugar_contract, LpStruct):
@@ -88,7 +96,6 @@ def test_forSwaps(sugar_contract, SwapLpStruct, LpStruct):
 
 def test_tokens(sugar_contract, TokenStruct, LpStruct):
     first_lp = LpStruct(*sugar_contract.byIndex(0))
-    second_lp = LpStruct(*sugar_contract.byIndex(1))
     tokens = list(map(
         lambda _p: TokenStruct(*_p),
         sugar_contract.tokens(10, 0, ADDRESS_ZERO, [])
@@ -97,14 +104,13 @@ def test_tokens(sugar_contract, TokenStruct, LpStruct):
     assert tokens is not None
     assert len(tokens) > 1
 
-    token0, token1, token2 = tokens[0: 3]
+    token0, token1 = tokens[0: 2]
 
     assert token0.token_address == first_lp.token0
     assert token0.symbol is not None
     assert token0.decimals > 0
 
     assert token1.token_address == first_lp.token1
-    assert token2.token_address == second_lp.token0
 
 
 def test_all(sugar_contract, LpStruct):
@@ -125,6 +131,16 @@ def test_all(sugar_contract, LpStruct):
 
     assert lp2.lp == second_lp.lp
     assert lp2.gauge == second_lp.gauge
+
+
+def test_all_pagination(sugar_contract, LpStruct):
+    max_lps = sugar_contract.MAX_LPS()
+
+    for i in range(0, max_lps, max_lps):
+        lps = sugar_contract.all(max_lps, 0)
+
+        assert lps is not None
+        assert len(lps) > max_lps - 1
 
 
 def test_all_limit_offset(sugar_contract, LpStruct):

@@ -11,5 +11,4 @@ WORKDIR /app
 RUN pip install "cython<3.0.0" && pip install --no-build-isolation pyyaml==5.4.1
 RUN pip install -r requirements.txt
 
-RUN brownie networks modify base-test host=https://sepolia.base.org
 RUN brownie networks modify base-main host=https://mainnet.base.org

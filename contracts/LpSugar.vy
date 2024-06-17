@@ -7,14 +7,14 @@
 
 # Structs
 
-MAX_FACTORIES: constant(uint256) = 10
-MAX_POOLS: constant(uint256) = 2000
-MAX_TOKENS: constant(uint256) = 2000
-MAX_LPS: constant(uint256) = 500
-MAX_EPOCHS: constant(uint256) = 200
-MAX_REWARDS: constant(uint256) = 50
-MAX_POSITIONS: constant(uint256) = 100
-WEEK: constant(uint256) = 7 * 24 * 60 * 60
+MAX_FACTORIES: public(constant(uint256)) = 10
+MAX_POOLS: public(constant(uint256)) = 2000
+MAX_TOKENS: public(constant(uint256)) = 2000
+MAX_LPS: public(constant(uint256)) = 500
+MAX_EPOCHS: public(constant(uint256)) = 200
+MAX_REWARDS: public(constant(uint256)) = 50
+MAX_POSITIONS: public(constant(uint256)) = 100
+WEEK: public(constant(uint256)) = 7 * 24 * 60 * 60
 
 # Slot0 from CLPool.sol
 struct Slot:
