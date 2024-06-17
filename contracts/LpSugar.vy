@@ -361,7 +361,7 @@ def forSwaps(_limit: uint256, _offset: uint256) -> DynArray[SwapLp, MAX_POOLS]:
 
       if is_cl_factory:
         type = pool.tickSpacing()
-        reserve0 = IERC20(token0).balanceOf(pool_addr)
+        reserve0 = self._raw_call_balance_of(token0, pool_addr)
         pool_fee = convert(pool.fee(), uint256)
       else:
         if pool.stable():
@@ -433,7 +433,7 @@ def _token(_address: address, _account: address) -> Token:
   bal: uint256 = empty(uint256)
 
   if _account != empty(address):
-    bal = token.balanceOf(_account)
+    bal = self._raw_call_balance_of(_address, _account)
 
   return Token({
     token_address: _address,
@@ -516,8 +516,8 @@ def _v2_lp(_data: address[4], _token0: address, _token1: address) -> Lp:
   pool_fees: address = pool.poolFees()
   token0: IERC20 = IERC20(_token0)
   token1: IERC20 = IERC20(_token1)
-  token0_fees: uint256 = token0.balanceOf(pool_fees)
-  token1_fees: uint256 = token1.balanceOf(pool_fees)
+  token0_fees: uint256 = self._raw_call_balance_of(_token0, pool_fees)
+  token1_fees: uint256 = self._raw_call_balance_of(_token1, pool_fees)
   gauge_alive: bool = self.voter.isAlive(gauge.address)
   decimals: uint8 = pool.decimals()
   claimable0: uint256 = 0
@@ -878,11 +878,11 @@ def _cl_lp(_data: address[4], _token0: address, _token1: address) -> Lp:
     sqrt_ratio: slot.sqrtPriceX96,
 
     token0: token0.address,
-    reserve0: token0.balanceOf(pool.address),
+    reserve0: self._raw_call_balance_of(_token0, pool.address),
     staked0: staked0,
 
     token1: token1.address,
-    reserve1: token1.balanceOf(pool.address),
+    reserve1: self._raw_call_balance_of(_token1, pool.address),
     staked1: staked1,
 
     gauge: gauge.address,
@@ -1228,3 +1228,26 @@ def _is_cl_factory(_factory: address) -> bool:
   )[1]
 
   return len(response) > 0
+
+@internal
+@view
+def _raw_call_balance_of(_token: address, _address: address) -> uint256:
+  """
+  @notice Returns the balance if the call to balanceOf was successfull, otherwise 0
+  @param _token The token to call
+  @param _address The address to get the balanceOf
+  """
+  response: Bytes[32] = raw_call(
+      _token,
+      concat(method_id("balanceOf(address)"), convert(_address, bytes32)),
+      max_outsize=32,
+      gas=100000,
+      is_delegate_call=False,
+      is_static_call=True,
+      revert_on_failure=False
+  )[1]
+
+  if len(response) > 0: 
+    return (convert(response, uint256))
+
+  return 0
