@@ -69,8 +69,6 @@ def test_initial_state(sugar_contract):
         '0x5C3F18F06CC09CA1910767A34a20F771039E37C0'
     assert sugar_contract.convertor() == \
         '0x1111111111111111111111111111111111111111'
-    assert sugar_contract.nfpm() == \
-        '0x827922686190790b37229fd06084350E74485b72'
     assert sugar_contract.cl_helper() == \
         '0x6d2D739bf37dFd93D804523c2dfA948EAf32f8E1'
 
