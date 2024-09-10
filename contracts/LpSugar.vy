@@ -396,7 +396,7 @@ def tokens(_limit: uint256, _offset: uint256, _account: address, \
     col.append(self._token(_addresses[index], _account))
     seen.append(_addresses[index])
 
-  for index in range(_offset, _offset + MAX_TOKENS):
+  for index in range(0, MAX_TOKENS):
     if len(col) >= _limit or index >= pools_count:
       break
 
@@ -446,7 +446,7 @@ def all(_limit: uint256, _offset: uint256) -> DynArray[Lp, MAX_LPS]:
   pools: DynArray[address[4], MAX_POOLS] = self._pools(_limit, _offset)
   pools_count: uint256 = len(pools)
 
-  for index in range(_offset, _offset + MAX_POOLS):
+  for index in range(0, MAX_POOLS):
     if len(col) == _limit or index >= pools_count:
       break
 
@@ -473,7 +473,7 @@ def byIndex(_index: uint256) -> Lp:
   """
   # Basically index is the limit and the offset is always one...
   # This will fire if _index is out of bounds
-  pool_data: address[4] = self._pools(1, _index)
+  pool_data: address[4] = self._pools(1, _index)[0]
   pool: IPool = IPool(pool_data[1])
   token0: address = pool.token0()
   token1: address = pool.token1()
@@ -956,7 +956,7 @@ def epochsLatest(_limit: uint256, _offset: uint256) \
 
   col: DynArray[LpEpoch, MAX_POOLS] = empty(DynArray[LpEpoch, MAX_POOLS])
 
-  for index in range(_offset, _offset + MAX_POOLS):
+  for index in range(0, MAX_POOLS):
     if counted == _limit or index >= pools_count:
       break
 
@@ -1119,7 +1119,7 @@ def rewards(_limit: uint256, _offset: uint256, _venft_id: uint256) \
 
   col: DynArray[Reward, MAX_POOLS] = empty(DynArray[Reward, MAX_POOLS])
 
-  for pindex in range(_offset, _offset + MAX_POOLS):
+  for pindex in range(0, MAX_POOLS):
     if counted == _limit or pindex >= pools_count:
       break
 
