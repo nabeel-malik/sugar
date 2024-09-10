@@ -281,7 +281,7 @@ def _pools(_limit: uint256, _offset: uint256)\
     nfpm: address = self._fetch_nfpm(factory.address)
 
     for pindex in range(0, MAX_ITERATIONS):
-      if pindex >= pools_count or visited >= _limit + _offset:
+      if pindex >= pools_count or visited >= _limit + _offset or len(pools) >= MAX_POOLS:
         break
 
       # Since the convertor pool, first pool on one of the factories...
@@ -327,7 +327,7 @@ def forSwaps(_limit: uint256, _offset: uint256) -> DynArray[SwapLp, MAX_POOLS]:
     pools_count: uint256 = factory.allPoolsLength()
 
     for pindex in range(0, MAX_ITERATIONS):
-      if pindex >= pools_count:
+      if pindex >= pools_count or len(pools) >= MAX_POOLS:
         break
 
       # If no pools to process are left...
@@ -396,7 +396,7 @@ def tokens(_limit: uint256, _offset: uint256, _account: address, \
     col.append(self._token(_addresses[index], _account))
     seen.append(_addresses[index])
 
-  for index in range(0, MAX_TOKENS):
+  for index in range(0, MAX_POOLS):
     if len(col) >= _limit or index >= pools_count:
       break
 
