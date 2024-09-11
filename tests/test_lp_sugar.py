@@ -119,6 +119,21 @@ def test_tokens(sugar_contract, TokenStruct, LpStruct):
     assert token1.token_address == first_lp.token1
 
 
+def test_tokens_large_limit(sugar_contract, TokenStruct):
+    many_tokens = list(map(
+        lambda _p: TokenStruct(*_p),
+        sugar_contract.tokens(2000, 1000, ADDRESS_ZERO, [])
+    ))
+
+    assert many_tokens is not None
+    assert len(many_tokens) > 100
+
+    token0 = many_tokens[0]
+
+    assert token0.symbol is not None
+    assert token0.decimals > 0
+
+
 def test_all(sugar_contract, LpStruct):
     first_lp = LpStruct(*sugar_contract.byIndex(0))
     second_lp = LpStruct(*sugar_contract.byIndex(1))
