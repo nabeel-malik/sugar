@@ -643,7 +643,7 @@ def _positions(
     if nfpm.address == empty(address):
       pools_count: uint256 = factory.allPoolsLength()
 
-      for pindex in range(0, MAX_POOLS):
+      for pindex in range(0, MAX_ITERATIONS):
         if pindex >= pools_count or pools_done >= _limit:
           break
 
@@ -695,7 +695,7 @@ def _positions(
       # fetch staked CL positions
       pools_count: uint256 = factory.allPoolsLength()
 
-      for pindex in range(0, MAX_POOLS):
+      for pindex in range(0, MAX_ITERATIONS):
         if pindex >= pools_count or pools_done >= _limit:
           break
 
