@@ -670,7 +670,7 @@ def _positions(
     if nfpm.address == empty(address):
       pools_count: uint256 = factory.allPoolsLength()
 
-      for pindex in range(0, MAX_POOLS):
+      for pindex in range(0, MAX_ITERATIONS):
         if pindex >= pools_count or pools_done >= _limit:
           break
 
@@ -787,7 +787,7 @@ def _positions(
         positions.append(pos)
 
       # fetch staked CL positions
-      for pindex in range(0, MAX_POOLS):
+      for pindex in range(0, MAX_ITERATIONS):
         if pindex >= pools_count or pools_done >= _limit:
           break
 
@@ -1057,7 +1057,7 @@ def epochsLatest(_limit: uint256, _offset: uint256) \
 
   col: DynArray[LpEpoch, MAX_POOLS] = empty(DynArray[LpEpoch, MAX_POOLS])
 
-  for index in range(0, MAX_POOLS):
+  for index in range(0, MAX_ITERATIONS):
     if counted == _limit or index >= pools_count:
       break
 
