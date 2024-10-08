@@ -1,7 +1,7 @@
 networks:
   default: development
   development:
-    timeout: 120
+    timeout: 300
     cmd_settings:
       accounts: 1
       mnemonic: brownie
